@@ -58,7 +58,7 @@ class MyWatchFace : CanvasWatchFaceService() {
         private var mXOffset: Float = 0F
         private var mYOffset: Float = 0F
 
-        private lateinit var mTimePaint: Paint
+        private lateinit var mTimePaintMid: Paint
         private lateinit var mTextPaint: Paint
         private lateinit var mBackground: Bitmap
         private var mScale: Float = 0F
@@ -92,15 +92,15 @@ class MyWatchFace : CanvasWatchFaceService() {
             val resources = this@MyWatchFace.resources
             mYOffset = resources.getDimension(R.dimen.digital_y_offset)
 
-            mTimePaint = Paint().apply {
+            mTimePaintMid = Paint().apply {
                 typeface = normalTypeface
                 isAntiAlias = false
-                color = ContextCompat.getColor(applicationContext, R.color.digital_text)
+                color = ContextCompat.getColor(applicationContext, R.color.digital_text_start)
             }
             mTextPaint = Paint().apply {
                 typeface = normalTypeface
                 isAntiAlias = false
-                color = ContextCompat.getColor(applicationContext, R.color.digital_text)
+                color = ContextCompat.getColor(applicationContext, R.color.date_text)
                 textSize = resources.getDimension(R.dimen.digital_text_size)
             }
         }
@@ -140,7 +140,6 @@ class MyWatchFace : CanvasWatchFaceService() {
             super.onAmbientModeChanged(inAmbientMode)
             mAmbient = inAmbientMode
             if (mLowBitAmbient) {
-                mTimePaint.isAntiAlias = !inAmbientMode
             }
             updateTimer()
         }
@@ -158,10 +157,22 @@ class MyWatchFace : CanvasWatchFaceService() {
             var text = ""
             var secondLine = ""
 
-            val date = String.format("%s.%s", mCalendar.get(Calendar.DAY_OF_MONTH), mCalendar.get(Calendar.MONTH) + 1)
-            val day = String.format("%s", mCalendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault()))
-            val time = String.format("%d:%02d", mCalendar.get(Calendar.HOUR_OF_DAY),
-                    mCalendar.get(Calendar.MINUTE))
+            val date = String.format(
+                    "%s.%s",
+                    mCalendar.get(Calendar.DAY_OF_MONTH),
+                    mCalendar.get(Calendar.MONTH) + 1
+            )
+            val day = String.format("%s", mCalendar.getDisplayName(
+                    Calendar.DAY_OF_WEEK,
+                    Calendar.SHORT,
+                    Locale.getDefault()
+            ))
+            val time = String.format(
+                    "%d:%02d",
+                    mCalendar.get(Calendar.HOUR_OF_DAY),
+                    mCalendar.get(Calendar.MINUTE)
+            )
+            val offset = mTimePaintMid.measureText(time)
             when (time) {
                 SONGS -> {
                     text = "Наслушался"
@@ -193,14 +204,39 @@ class MyWatchFace : CanvasWatchFaceService() {
                 text = "Это везде"
                 isTwentyTwo = true
             }
-            canvas.drawText(time, mXAlignment - mTimePaint.measureText(time) / 2, mYOffset - 60, mTimePaint)
+            canvas.drawText(
+                    time,
+                    mXAlignment - offset / 2,
+                    mYOffset - 55,
+                    mTimePaintMid
+            )
             if (isTwentyTwo)
-                canvas.drawText(secondLine, mXAlignment - mTextPaint.measureText(secondLine) / 2, mYOffset + 170, mTextPaint)
+                canvas.drawText(
+                        secondLine,
+                        mXAlignment - mTextPaint.measureText(secondLine) / 2,
+                        mYOffset + 170,
+                        mTextPaint
+                )
             else {
-                canvas.drawText(date, mXAlignment - mTextPaint.measureText(date) / 2, mYOffset + 150, mTextPaint)
-                canvas.drawText(day, mXAlignment - mTextPaint.measureText(day) / 2, mYOffset + 180, mTextPaint)
+                canvas.drawText(
+                        date,
+                        mXAlignment - mTextPaint.measureText(date) / 2,
+                        mYOffset + 150,
+                        mTextPaint
+                )
+                canvas.drawText(
+                        day,
+                        mXAlignment - mTextPaint.measureText(day) / 2,
+                        mYOffset + 180,
+                        mTextPaint
+                )
             }
-            canvas.drawText(text, mXAlignment - mTextPaint.measureText(text) / 2, mYOffset + 130, mTextPaint)
+            canvas.drawText(
+                    text,
+                    mXAlignment - mTextPaint.measureText(text) / 2,
+                    mYOffset + 130,
+                    mTextPaint
+            )
         }
 
         override fun onVisibilityChanged(visible: Boolean) {
@@ -249,7 +285,7 @@ class MyWatchFace : CanvasWatchFaceService() {
                     else
                         R.dimen.digital_time_size
             )
-            mTimePaint.textSize = timeSize
+            mTimePaintMid.textSize = timeSize
         }
 
         private fun updateTimer() {
